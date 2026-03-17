@@ -15,14 +15,20 @@ class EmailService:
         message["Subject"] = subject
         message.set_content(content)
 
-        await aiosmtplib.send(
-            message,
-            hostname=os.getenv("EMAIL_HOST"),
-            port=int(os.getenv("EMAIL_PORT", 587)),
-            username=os.getenv("EMAIL_USER"),
-            password=os.getenv("EMAIL_PASS"),
-            start_tls=True,
-        )
+        try:
+            print(f"DEBUG: Attempting to send email to {to_email} via {os.getenv('EMAIL_HOST')}:{os.getenv('EMAIL_PORT', 587)}")
+            await aiosmtplib.send(
+                message,
+                hostname=os.getenv("EMAIL_HOST"),
+                port=int(os.getenv("EMAIL_PORT", 587)),
+                username=os.getenv("EMAIL_USER"),
+                password=os.getenv("EMAIL_PASS"),
+                start_tls=True,
+            )
+            print(f"DEBUG: Successfully sent email to {to_email}")
+        except Exception as e:
+            print(f"ERROR: Failed to send email to {to_email}. Error: {str(e)}")
+            raise e
 
     @classmethod
     async def send_contact_notification(cls, data: dict):

@@ -27,7 +27,9 @@ async def create_contact(request: Request, contact: ContactCreate, background_ta
         raise HTTPException(status_code=500, detail="Database connection error")
 
     # 3. Send Emails (Background)
+    print(f"DEBUG: Adding background tasks for contact: {contact_dict['email']}")
     background_tasks.add_task(EmailService.send_contact_notification, contact_dict)
     background_tasks.add_task(EmailService.send_auto_reply, contact_dict)
+    print(f"DEBUG: Background tasks added successfully")
 
     return {"success": True, "message": "Message received"}
