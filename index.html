@@ -3571,18 +3571,30 @@
         }
 
         btn.disabled = true;
-        btn.textContent = 'Sending…';
+        btn.textContent = 'Sending...';
 
         try {
+          // Add a hint if it takes more than 3 seconds (common for Render cold starts)
+          const slowLoading = setTimeout(() => {
+            if (btn.disabled && btn.textContent === 'Sending...') {
+              btn.textContent = 'Sending... (Waking up server)';
+            }
+          }, 3000);
+
           const res = await fetch(`${CONFIG.API_BASE}/api/contact`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
+          
+          clearTimeout(slowLoading);
           const data = await res.json();
+          
           if (data.success) {
             btn.innerHTML = '✓ Message sent — I\'ll reply within 24 hours';
             btn.style.background = 'var(--green)';
+            // Keep the success state visible, don't reset.
+            // If they want to send another, they can refresh or we could add a "Send another" link.
           } else {
             throw new Error(data.message || 'Error occurred');
           }
@@ -3591,13 +3603,14 @@
           btn.textContent = 'Something went wrong — try emailing me directly';
           btn.style.background = '#dc2626';
           btn.disabled = false;
+          
+          // Reset after 10 seconds only on error so they can try again
+          setTimeout(() => {
+            btn.textContent = 'Send Message →';
+            btn.style.background = '';
+            btn.disabled = false;
+          }, 10000);
         }
-
-        setTimeout(() => {
-          btn.textContent = 'Send Message →';
-          btn.style.background = '';
-          btn.disabled = false;
-        }, 6000);
       };
     })();
   </script>
