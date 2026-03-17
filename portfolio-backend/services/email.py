@@ -59,8 +59,12 @@ Reply to: {data['email']}
 
     @classmethod
     async def send_auto_reply(cls, data: dict):
-        subject = f"Got your message — Nikhil V"
-        content = f"""
+        # We wrap this in a try-except because Resend trial accounts 
+        # can ONLY send to the account owner. 
+        # Attempting to send to the visitor will fail.
+        try:
+            subject = f"Got your message — Nikhil V"
+            content = f"""
 Hi {data['name']},
 
 Thanks for reaching out! I've received your message 
@@ -73,4 +77,7 @@ Talk soon,
 Nikhil V
 AI & Full-Stack Developer
 """
-        await cls.send_email(data["email"], subject, content)
+            await cls.send_email(data["email"], subject, content)
+        except Exception as e:
+            print(f"NOTICE: Auto-reply to visitor ignored (likely Resend trial restriction). Error: {str(e)}")
+            # We don't re-raise here so the main notification still succeeds
