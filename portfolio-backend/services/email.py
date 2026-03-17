@@ -20,7 +20,7 @@ class EmailService:
         start_tls = (port != 465)
 
         try:
-            print(f"DEBUG: Attempting to send email to {to_email} via {os.getenv('EMAIL_HOST')}:{port} (use_tls={use_tls}, start_tls={start_tls})")
+            print(f"DEBUG: Attempting to send email to {to_email} via {os.getenv('EMAIL_HOST')}:{port} (use_tls={use_tls}, start_tls={start_tls}) with 30s timeout")
             await aiosmtplib.send(
                 message,
                 hostname=os.getenv("EMAIL_HOST"),
@@ -29,6 +29,7 @@ class EmailService:
                 password=os.getenv("EMAIL_PASS"),
                 use_tls=use_tls,
                 start_tls=start_tls,
+                timeout=30.0,
             )
             print(f"DEBUG: Successfully sent email to {to_email}")
         except Exception as e:
