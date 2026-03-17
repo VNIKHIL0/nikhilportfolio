@@ -15,19 +15,24 @@ class EmailService:
         message["Subject"] = subject
         message.set_content(content)
 
+        port = int(os.getenv("EMAIL_PORT", 587))
+        use_tls = (port == 465)
+        start_tls = (port != 465)
+
         try:
-            print(f"DEBUG: Attempting to send email to {to_email} via {os.getenv('EMAIL_HOST')}:{os.getenv('EMAIL_PORT', 587)}")
+            print(f"DEBUG: Attempting to send email to {to_email} via {os.getenv('EMAIL_HOST')}:{port} (use_tls={use_tls}, start_tls={start_tls})")
             await aiosmtplib.send(
                 message,
                 hostname=os.getenv("EMAIL_HOST"),
-                port=int(os.getenv("EMAIL_PORT", 587)),
+                port=port,
                 username=os.getenv("EMAIL_USER"),
                 password=os.getenv("EMAIL_PASS"),
-                start_tls=True,
+                use_tls=use_tls,
+                start_tls=start_tls,
             )
             print(f"DEBUG: Successfully sent email to {to_email}")
         except Exception as e:
-            print(f"ERROR: Failed to send email to {to_email}. Error: {str(e)}")
+            print(f"ERROR: Failed to send email to {to_email}. Error type: {type(e).__name__}, Message: {str(e)}")
             raise e
 
     @classmethod
