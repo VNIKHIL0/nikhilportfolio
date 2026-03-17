@@ -3590,17 +3590,15 @@
           clearTimeout(slowLoading);
           const data = await res.json();
           
-          if (data.success) {
+          if (res.ok && data.success) {
             btn.innerHTML = '✓ Message sent — I\'ll reply within 24 hours';
             btn.style.background = 'var(--green)';
-            // Keep the success state visible, don't reset.
-            // If they want to send another, they can refresh or we could add a "Send another" link.
           } else {
-            throw new Error(data.message || 'Error occurred');
+            throw new Error(data.detail || data.message || 'Error occurred');
           }
         } catch (err) {
           console.error(err);
-          btn.textContent = 'Something went wrong — try emailing me directly';
+          btn.textContent = err.message || 'Something went wrong — try emailing me directly';
           btn.style.background = '#dc2626';
           btn.disabled = false;
           
