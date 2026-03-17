@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nikhil V | Portfolio Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #070708;
+            --card: #111114;
+            --card-h: #16161a;
+            --text: #ffffff;
+            --muted: #888891;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59,130,246,0.15);
+            --border: rgba(255,255,255,0.06);
+            --green: #10b981;
+            --red: #ef4444;
+        }
+
+        * { margin:0; padding:0; box-sizing: border-box; scroll-behavior: smooth; }
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        /* Navigation */
+        nav {
+            padding: 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 40px;
+            position: sticky; top:0; background: var(--bg); z-index: 100;
+        }
+        .brand { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .brand-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 10px var(--green); }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.2s; cursor: pointer; }
+        .nav-links a:hover, .nav-links a.active { color: #fff; }
+
+        /* Auth Panel */
+        .auth-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: var(--bg); z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .auth-card {
+            background: var(--card); border: 1px solid var(--border);
+            padding: 40px; border-radius: 24px; width: 100%; max-width: 400px;
+            text-align: center;
+        }
+        .auth-card h2 { margin-bottom: 24px; font-size: 24px; }
+        input {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+            padding: 14px 18px; border-radius: 12px; color: #fff; font-family: inherit;
+            outline: none; transition: all 0.2s; margin-bottom: 20px;
+        }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+        .auth-btn {
+            width: 100%; background: var(--accent); color: #fff; border: none;
+            padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        /* Dashboard Styles */
+        .grid-main { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .card { 
+            background: var(--card); border: 1px solid var(--border); 
+            padding: 24px; border-radius: 20px;
+        }
+        .card-label { color: var(--muted); font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        .card-val { font-size: 36px; font-weight: 600; }
+        
+        .section-h { font-size: 18px; font-weight: 600; margin-bottom: 20px; margin-top: 40px; display: flex; align-items: center; gap: 10px; }
+        
+        /* Table */
+        .table-wrap { 
+            background: var(--card); border: 1px solid var(--border); 
+            border-radius: 20px; overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 800px; }
+        th { background: rgba(255,255,255,0.02); padding: 16px 24px; font-size: 13px; color: var(--muted); font-weight: 500; }
+        td { padding: 18px 24px; border-top: 1px solid var(--border); font-size: 14px; }
+        
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .badge-new { background: rgba(59,130,246,0.1); color: var(--accent); }
+        .badge-read { background: rgba(136,136,145,0.1); color: var(--muted); }
+        
+        .referrer-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
+        .referrer-row:last-child { border: none; }
+
+        .loading-spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="auth-overlay" id="authOverlay">
+    <div class="auth-card">
+        <h2>Admin Access</h2>
+        <input type="password" id="apiKey" placeholder="Enter API Key...">
+        <button class="auth-btn" id="loginBtn" onclick="handleLogin()">Unlock Analytics</button>
+        <p id="errorMsg" style="color: var(--red); margin-top: 15px; display: none; font-size: 14px;">Invalid Key or Server Offline</p>
+    </div>
+</div>
+
+<div class="container" id="mainContent" hidden>
+    <nav>
+        <div class="brand"><div class="brand-dot"></div> Nikhil V Analytics</div>
+        <div class="nav-links">
+            <a onclick="scrollToTop()">Overview</a>
+            <a onclick="document.getElementById('inquiries-h').scrollIntoView()">Inquiries</a>
+            <a onclick="refreshData()" id="refreshBtn">Refresh Data</a>
+            <a onclick="handleLogout()" style="color: var(--red)">Logout</a>
+        </div>
+    </nav>
+
+    <div class="grid-main">
+        <div class="card">
+            <div class="card-label">Total Views</div>
+            <div class="card-val" id="total_views">0</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Visits Today</div>
+            <div class="card-val" id="today_views">0</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Inquiries</div>
+            <div class="card-val" id="form_submissions">0</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Conversion</div>
+            <div class="card-val" id="conv_rate">0%</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Total Bookings</div>
+            <div class="card-val" id="total_bookings">0</div>
+        </div>
+    </div>
+
+    <div class="section-h">Real Traffic Sources</div>
+    <div class="card" id="referrersList" style="margin-bottom: 40px;">
+        <!-- Real counts injected here -->
+    </div>
+
+    <div class="section-h" id="bookings-h">Recent Bookings</div>
+    <div class="table-wrap" style="margin-bottom: 40px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Event URI</th>
+                    <th>Invitee</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="bookingBody"></tbody>
+        </table>
+    </div>
+
+    <div class="section-h" id="inquiries-h">Recent Inquiries</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Sender</th>
+                    <th>Interest</th>
+                    <th>Date</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="inquiryBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // --- Production Configuration ---
+    const CONFIG = {
+      API_BASE: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' 
+                ? "http://127.0.0.1:8000" 
+                : "https://your-production-api-url.com" // Update this after deployment
+    };
+    const API_BASE = CONFIG.API_BASE;
+    let CURRENT_KEY = localStorage.getItem('portfolio_admin_key') || "";
+
+    // Auto-login on load if key exists
+    window.onload = () => {
+        if (CURRENT_KEY) {
+            document.getElementById('apiKey').value = CURRENT_KEY;
+            handleLogin();
+        }
+    }
+
+    async function handleLogin() {
+        const keyInput = document.getElementById('apiKey');
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        
+        CURRENT_KEY = keyInput.value;
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<div class="loading-spinner" style="margin: 0 auto;"></div>';
+
+        try {
+            await refreshData();
+            localStorage.setItem('portfolio_admin_key', CURRENT_KEY);
+            document.getElementById('authOverlay').hidden = true;
+            document.getElementById('mainContent').hidden = false;
+        } catch (err) {
+            errorMsg.style.display = 'block';
+            localStorage.removeItem('portfolio_admin_key');
+        } finally {
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Unlock Analytics';
+        }
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('portfolio_admin_key');
+        location.reload();
+    }
+
+    async function refreshData() {
+        const btn = document.getElementById('refreshBtn');
+        const originalText = btn.textContent;
+        btn.textContent = "Loading...";
+
+        try {
+            const [summary, inquiries, bookings] = await Promise.all([
+                fetchData('/api/analytics/summary'),
+                fetchData('/api/admin/contacts'),
+                fetchData('/api/admin/bookings')
+            ]);
+            renderSummary(summary);
+            renderInquiries(inquiries);
+            renderBookings(bookings);
+        } finally {
+            btn.textContent = originalText;
+        }
+    }
+
+    async function fetchData(endpoint) {
+        const res = await fetch(`${API_BASE}${endpoint}`, {
+            headers: { 'X-API-Key': CURRENT_KEY }
+        });
+        if (!res.ok) throw new Error('Unauthorized');
+        return await res.json();
+    }
+
+    function renderSummary(data) {
+        document.getElementById('total_views').textContent = data.total_views;
+        document.getElementById('today_views').textContent = data.today_views;
+        document.getElementById('form_submissions').textContent = data.form_submissions;
+        document.getElementById('total_bookings').textContent = data.total_bookings;
+        document.getElementById('conv_rate').textContent = (((data.form_submissions + data.total_bookings) / (data.total_views || 1)) * 100).toFixed(1) + '%';
+
+        const list = document.getElementById('referrersList');
+        list.innerHTML = '';
+        data.top_referrers.forEach(ref => {
+            const div = document.createElement('div');
+            div.className = 'referrer-row';
+            div.innerHTML = `<span>${ref.name}</span><span style="color:var(--accent)">${ref.count} views</span>`;
+            list.appendChild(div);
+        });
+    }
+
+    function renderInquiries(list) {
+        const body = document.getElementById('inquiryBody');
+        body.innerHTML = list.length ? '' : '<tr><td colspan="5" style="text-align:center">No records found</td></tr>';
+        list.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><b>${item.name}</b><br><small>${item.email}</small></td>
+                <td>${item.service || 'General'}</td>
+                <td>${new Date(item.timestamp).toLocaleDateString()}</td>
+                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${item.message}</td>
+                <td><span class="badge badge-${item.status}">${item.status}</span></td>
+            `;
+            body.appendChild(row);
+        });
+    }
+
+    function renderBookings(list) {
+        const body = document.getElementById('bookingBody');
+        body.innerHTML = list.length ? '' : '<tr><td colspan="4" style="text-align:center">No bookings found</td></tr>';
+        list.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><small>${item.event_uri.split('/').pop()}</small></td>
+                <td><small>${item.invitee_uri.split('/').pop()}</small></td>
+                <td>${new Date(item.timestamp).toLocaleString()}</td>
+                <td><span class="badge badge-new">${item.status}</span></td>
+            `;
+            body.appendChild(row);
+        });
+    }
+
+    function scrollToTop() { window.scrollTo(0,0); }
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# Environments
+.env
+portfolio-backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+.gemini/
+*.log

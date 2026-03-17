@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+motor
+aiosmtplib
+pydantic[email]
+python-dotenv
+slowapi
+dnspython
+pydantic-settings
+jinja2
