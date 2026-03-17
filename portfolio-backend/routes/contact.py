@@ -10,7 +10,7 @@ router = APIRouter(prefix="/api/contact", tags=["contact"])
 limiter = Limiter(key_func=get_remote_address)
 
 @router.post("")
-@limiter.limit("3/hour")
+@limiter.limit("20/hour")
 async def create_contact(request: Request, contact: ContactCreate, db=Depends(get_database)):
     # 1. Prepare data
     contact_dict = contact.dict()
