@@ -29,7 +29,7 @@ async def startup_db_client():
     await connect_to_mongo()
     
     # Check for required environment variables
-    required_vars = ["RESEND_API_KEY", "NOTIFY_EMAIL"]
+    required_vars = ["SENDGRID_API_KEY", "NOTIFY_EMAIL"]
     missing = [v for v in required_vars if not os.getenv(v)]
     if missing:
         print(f"CRITICAL WARNING: Missing environment variables: {', '.join(missing)}")
