@@ -1,39 +1,40 @@
 import os
-import aiosmtplib
-from email.message import EmailMessage
+import resend
 from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# Configure Resend
+resend.api_key = os.getenv("RESEND_API_KEY")
+
 class EmailService:
     @staticmethod
     async def send_email(to_email: str, subject: str, content: str):
-        message = EmailMessage()
-        message["From"] = os.getenv("EMAIL_USER")
-        message["To"] = to_email
-        message["Subject"] = subject
-        message.set_content(content)
-
-        port = int(os.getenv("EMAIL_PORT", 587))
-        use_tls = (port == 465)
-        start_tls = (port != 465)
-
         try:
-            print(f"DEBUG: Attempting to send email to {to_email} via {os.getenv('EMAIL_HOST')}:{port} (use_tls={use_tls}, start_tls={start_tls}) with 30s timeout")
-            await aiosmtplib.send(
-                message,
-                hostname=os.getenv("EMAIL_HOST"),
-                port=port,
-                username=os.getenv("EMAIL_USER"),
-                password=os.getenv("EMAIL_PASS"),
-                use_tls=use_tls,
-                start_tls=start_tls,
-                timeout=30.0,
-            )
-            print(f"DEBUG: Successfully sent email to {to_email}")
+            print(f"DEBUG: Attempting to send email to {to_email} via Resend API")
+            
+            # Resend requires a verified domain or uses onboarding@resend.dev for testing
+            # We'll use the EMAIL_USER if it looks like a custom domain email, 
+            # otherwise default to onboarding@resend.dev
+            from_email = os.getenv("EMAIL_USER", "onboarding@resend.dev")
+            if "gmail.com" in from_email.lower():
+                from_email = "onboarding@resend.dev"
+
+            params = {
+                "from": f"Portfolio <{from_email}>",
+                "to": [to_email],
+                "subject": subject,
+                "text": content,
+            }
+
+            # Resend's library is synchronous for now, but we'll wrap it if needed.
+            # Usually it's fast enough for background tasks or immediate await.
+            email = resend.Emails.send(params)
+            print(f"DEBUG: Successfully sent email to {to_email}. ID: {email['id']}")
+            return email
         except Exception as e:
-            print(f"ERROR: Failed to send email to {to_email}. Error type: {type(e).__name__}, Message: {str(e)}")
+            print(f"ERROR: Resend API failed for {to_email}. Error: {str(e)}")
             raise e
 
     @classmethod

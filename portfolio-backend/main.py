@@ -24,34 +24,17 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 setup_cors(app)
 
 # Events
-import socket
-
-async def check_network_connectivity():
-    targets = [
-        ("smtp.gmail.com", 465),
-        ("smtp.gmail.com", 587),
-        ("8.8.8.8", 53)  # Google DNS to check general outbound
-    ]
-    print("DEBUG: Starting network connectivity diagnostics...")
-    for host, port in targets:
-        try:
-            with socket.create_connection((host, port), timeout=5):
-                print(f"SUCCESS: Port {port} is OPEN on {host}")
-        except Exception as e:
-            print(f"FAILURE: Port {port} is CLOSED or TIMED OUT on {host}. Error: {e}")
-
 @app.on_event("startup")
 async def startup_db_client():
     await connect_to_mongo()
-    await check_network_connectivity()
     
     # Check for required environment variables
-    required_vars = ["EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "NOTIFY_EMAIL"]
+    required_vars = ["RESEND_API_KEY", "NOTIFY_EMAIL"]
     missing = [v for v in required_vars if not os.getenv(v)]
     if missing:
         print(f"CRITICAL WARNING: Missing environment variables: {', '.join(missing)}")
     else:
-        print("DEBUG: All email environment variables are present")
+        print("DEBUG: All required environment variables are present")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
