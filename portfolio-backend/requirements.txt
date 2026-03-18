@@ -8,4 +8,4 @@ slowapi
 dnspython
 pydantic-settings
 jinja2
-sendgrid
+resend

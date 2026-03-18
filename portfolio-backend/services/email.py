@@ -1,6 +1,5 @@
 import os
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+import resend
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -8,28 +7,37 @@ load_dotenv()
 
 class EmailService:
     @staticmethod
-    async def send_email(to_email: str, subject: str, content: str):
+    async def send_email(to_email: str, subject: str, content: str, is_notification: bool = False):
         try:
-            print(f"DEBUG: Attempting to send email to {to_email} via SendGrid API")
+            print(f"DEBUG: Attempting to send email to {to_email} via Resend API")
             
-            # SendGrid uses the verified Single Sender email
-            from_email = os.getenv("EMAIL_USER", "vnikhilpatil@gmail.com")
+            resend.api_key = os.getenv("RESEND_API_KEY")
             
-            message = Mail(
-                from_email=from_email,
-                to_emails=to_email,
-                subject=subject,
-                plain_text_content=content
-            )
+            # Resend uses this sandbox email until you verify a custom domain
+            from_email = "onboarding@resend.dev"
+            
+            params = {
+                "from": f"Nikhil Portfolio <{from_email}>",
+                "to": to_email,
+                "subject": subject,
+                "text": content,
+                "html": f"<pre style='font-family: inherit;'>{content}</pre>"
+            }
 
-            sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
-            response = sg.send(message)
+            response = resend.Emails.send(params)
             
-            print(f"DEBUG: SendGrid Success! Status Code: {response.status_code}")
+            print(f"DEBUG: Resend Response for {to_email}:")
+            print(response)
+            
             return response
         except Exception as e:
-            print(f"ERROR: SendGrid API failed for {to_email}. Error: {str(e)}")
-            raise e
+            print(f"ERROR: Resend API failed for {to_email}. Error: {str(e)}")
+            # If this is an auto-reply, it's expected to fail on the free tier 
+            # (you can only send TO your registered email).
+            if not is_notification:
+                print("NOTE: Auto-replies to external emails require a verified domain on Resend.")
+            else:
+                raise e
 
     @classmethod
     async def send_contact_notification(cls, data: dict):
@@ -49,7 +57,8 @@ Message:
 Submitted at: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 Reply to: {data['email']}
 """
-        await cls.send_email(os.getenv("NOTIFY_EMAIL"), subject, content)
+        # is_notification=True ensures we surface the error if this fails
+        await cls.send_email(os.getenv("NOTIFY_EMAIL"), subject, content, is_notification=True)
 
     @classmethod
     async def send_auto_reply(cls, data: dict):
@@ -67,4 +76,6 @@ Talk soon,
 Nikhil V
 AI & Full-Stack Developer
 """
-        await cls.send_email(data["email"], subject, content)
+        # is_notification=False because this WILL fail if sending to a generic user 
+        # (until a custom domain is verified in Resend)
+        await cls.send_email(data["email"], subject, content, is_notification=False)
