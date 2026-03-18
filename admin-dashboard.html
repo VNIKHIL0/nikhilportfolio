@@ -208,7 +208,7 @@
         const loginBtn = document.getElementById('loginBtn');
         const errorMsg = document.getElementById('errorMsg');
         
-        CURRENT_KEY = keyInput.value;
+        CURRENT_KEY = keyInput.value.trim();
         loginBtn.disabled = true;
         loginBtn.innerHTML = '<div class="loading-spinner" style="margin: 0 auto;"></div>';
 
