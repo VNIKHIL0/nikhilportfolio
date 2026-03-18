@@ -3534,12 +3534,12 @@
     // FORM
     // ANALYTICS & FORM
     (function () {
-    // --- Production Configuration ---
-    const CONFIG = {
-      API_BASE: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' 
-                ? "http://127.0.0.1:8000" 
-                : "https://nikhilportfolio-md3h.onrender.com"
-    };
+      // --- Production Configuration ---
+      const CONFIG = {
+        API_BASE: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+          ? "http://127.0.0.1:8000"
+          : "https://nikhilportfolio-md3h.onrender.com"
+      };
 
 
       // Track pageview on load
@@ -3552,7 +3552,7 @@
             referrer: document.referrer || 'direct',
             userAgent: navigator.userAgent
           })
-        }).catch(e => {});
+        }).catch(e => { });
       });
 
       window.sendForm = async function () {
@@ -3579,10 +3579,27 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
-          
+
           const data = await res.json();
-          
+
           if (res.ok && data.success) {
+
+            // --- EMAILJS AUTO-REPLY ---
+            // Paste your 3 IDs from your EmailJS dashboard right here:
+            const EMAILJS_SERVICE_ID = "service_jqcg5ea";
+            const EMAILJS_TEMPLATE_ID = "template_8sauh5d";
+            const EMAILJS_PUBLIC_KEY = "mYnF9HlOf1D3jV-bv";
+
+            if (EMAILJS_SERVICE_ID !== "YOUR_SERVICE_ID") {
+              emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+              emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                user_name: payload.name,
+                email: payload.email,
+                service: payload.service || 'your'
+              }).catch(console.error);
+            }
+            // --------------------------
+
             btn.innerHTML = '✓ Message sent — I\'ll reply within 24 hours';
             btn.style.background = 'var(--green)';
           } else {
@@ -3593,7 +3610,7 @@
           btn.textContent = err.message || 'Something went wrong — try emailing me directly';
           btn.style.background = '#dc2626';
           btn.disabled = false;
-          
+
           // Reset after 10 seconds only on error so they can try again
           setTimeout(() => {
             btn.textContent = 'Send Message →';
@@ -3618,11 +3635,13 @@
                 status: 'scheduled'
               })
             });
-          } catch (err) {}
+          } catch (err) { }
         }
       }
     });
   </script>
+  <!-- EmailJS SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </body>
 
 </html>
